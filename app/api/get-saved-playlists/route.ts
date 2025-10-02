@@ -15,7 +15,9 @@ export async function GET() {
     const playlists = await prisma.playlist.findMany({
       where: { userId: session.user.id },
       orderBy: { createdAt: 'desc' },
-      select: { id: true, name: true, trackIds: true }, // Select only needed fields
+      // --- THIS IS THE FIX ---
+      select: { id: true, name: true, spotifyPlaylistUrl: true }, // Correct field
+      // --- END OF FIX ---
     });
     return NextResponse.json({ playlists });
   } catch (error) {

@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "../app/globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-// --- THIS IS THE CRITICAL IMPORT ---
+import "./globals.css";
 import SessionProvider from "@/components/SessionProvider";
-// --- END OF IMPORT ---
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,17 +18,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        {/* --- THIS IS THE CRITICAL FIX --- */}
-        {/* We wrap everything in the SessionProvider */}
         <SessionProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+          {children}
         </SessionProvider>
       </body>
     </html>

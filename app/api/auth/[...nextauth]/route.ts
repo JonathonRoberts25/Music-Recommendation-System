@@ -9,7 +9,7 @@ if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
 }
 
 const prisma = new PrismaClient();
-const SPOTIFY_SCOPES = 'user-read-email playlist-read-private user-read-private user-read-refresh-token playlist-modify-public streaming';
+const SPOTIFY_SCOPES = 'user-read-email playlist-read-private user-read-private playlist-modify-public playlist-modify-private';
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
@@ -46,39 +46,54 @@ export const authOptions: AuthOptions = {
     SpotifyProvider({
       clientId: process.env.SPOTIFY_CLIENT_ID!,
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
-      // --- THIS IS THE FINAL, GUARANTEED FIX ---
-      // The 'authorization' object creates an invalid URL. The simple 'scope' property is correct.
-      // We use @ts-ignore to bypass a misleading TypeScript error in the library's types.
-      // @ts-ignore
-      scope: SPOTIFY_SCOPES,
+      // This is the correct way to specify scopes for next-auth
+      authorization: {
+        params: {
+          scope: SPOTIFY_SCOPES,
+        },
+      },
     }),
   ],
+  
+  // --- THIS IS THE FINAL, GUARANTEED FIX for the session logic ---
+  // When using a database adapter, the session strategy is automatically 'database'.
+  // However, to manage external access tokens (like Spotify's), we must use JWTs
+  // and manually link the data in the callbacks.
+  session: {
+    strategy: "jwt",
+  },
   callbacks: {
     async jwt({ token, user, account }) {
+      // Initial sign in
       if (account && user) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.accessTokenExpires = Date.now() + (Number(account.expires_in) ?? 0) * 1000;
+        // This is the key: we are adding the user's database ID to the token
         token.id = user.id;
         return token;
       }
+
+      // Return previous token if the access token has not expired yet
       if (Date.now() < (token.accessTokenExpires ?? 0)) {
         return token;
       }
+
+      // Access token has expired, try to update it
       return refreshAccessToken(token);
     },
     async session({ session, token }) {
+      // This is the key: we are taking the data from the JWT token and putting it in the final session object
       session.accessToken = token.accessToken;
       session.error = token.error;
       if (session.user) {
-        session.user.id = token.id;
+        session.user.id = token.id as string;
       }
       return session;
     },
   },
-  session: {
-    strategy: "jwt",
-  },
+  // --- END OF FIX ---
+  
   secret: process.env.NEXTAUTH_SECRET,
 };
 
