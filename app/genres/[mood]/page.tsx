@@ -185,7 +185,7 @@ export default function GenrePage() {
               </div>
               <iframe
                   style={{ borderRadius: '12px' }}
-                  src={`https://open.spotify.com/embed/playlist/${playlistUrl.split('/').pop()}`}
+                  src={playlistUrl.replace('/playlist/', '/embed/playlist/')}
                   width="100%"
                   height="380"
                   frameBorder="0"

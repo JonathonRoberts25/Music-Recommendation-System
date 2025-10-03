@@ -102,7 +102,7 @@ export default function ProfilePage() {
                             </div>
                             <iframe
                                 style={{ borderRadius: '12px' }}
-                                src={`https://open.spotify.com/embed/playlist/${playlist.spotifyPlaylistUrl.split('/').pop()}`}
+                                src={playlist.spotifyPlaylistUrl.replace('/playlist/', '/embed/playlist/')}
                                 width="100%"
                                 height="380"
                                 frameBorder="0"
