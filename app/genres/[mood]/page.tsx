@@ -47,7 +47,7 @@ export default function GenrePage() {
     });
   };
 
-  const generatePlaylist = async () => {
+const generatePlaylist = async () => {
     if (!session) { setError("Please sign in to create a playlist."); return; }
     if (selectedGenres.size === 0) { setError("Please select at least one genre."); return; }
     
@@ -76,11 +76,25 @@ export default function GenrePage() {
               trackUris: trackUris
           }),
       });
-      if (!createResponse.ok) throw new Error('Failed to create the Spotify playlist.');
+
+      // --- START OF CRITICAL DEBUGGING CODE ---
+      console.log("API Response Status (from Vercel):", createResponse.status);
+      
       const playlistData = await createResponse.json();
+      
+      console.log("DATA RECEIVED BY FRONTEND (on Vercel):", playlistData);
+      
+      if (!playlistData.playlistUrl) {
+          console.error("ERROR: 'playlistUrl' key is missing from the received data!", playlistData);
+      }
+      // --- END OF CRITICAL DEBUGGING CODE ---
+
+      if (!createResponse.ok) throw new Error('Failed to create the Spotify playlist.');
+      
       setPlaylistUrl(playlistData.playlistUrl);
 
     } catch (err: any) {
+      console.error("An error occurred in the generatePlaylist function:", err);
       setError(err.message);
     } finally {
       setIsLoading(false);
@@ -100,6 +114,10 @@ export default function GenrePage() {
           playlistUrl: playlistUrl
         }),
       });
+
+
+
+
       if (!response.ok) throw new Error('Failed to save the playlist to your profile.');
       setIsSaved(true);
     } catch (err: any) {
