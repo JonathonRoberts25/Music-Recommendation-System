@@ -91,7 +91,9 @@ const generatePlaylist = async () => {
 
       if (!createResponse.ok) throw new Error('Failed to create the Spotify playlist.');
       
-      setPlaylistUrl(playlistData.playlistUrl);
+      setTimeout(() => {
+        setPlaylistUrl(playlistData.playlistUrl);
+      }, 2500);
 
     } catch (err: any) {
       console.error("An error occurred in the generatePlaylist function:", err);
